@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "shared",
+    "client-wasm",
+    "vprog-mock",
+    "node-core",
+    "tally"
+, "tests_bin"]
