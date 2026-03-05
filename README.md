@@ -48,8 +48,13 @@ BitBallotはスマートコントラクトや専用のL2チェーンを必要と
 - **監視下での運用 (Supervised Environment)**: 自宅などでのリモート投票は、物理的な強要や監視を防げないため、明示的に「対象外」とされています。
 - **制度的責任の分離**: 暗号技術は「正当性」を保証しますが、「有権者の資格確認」や「強要の防止」は、既存の法的・物理的な制度（投票所や住民登録）が担います。
 
-## 📝 今後の課題 (Roadmap)
-未実装の機能や今後のロードマップ、有志による要望については [TODO.md](./TODO.md) を参照してください。
+## 🤝 貢献について (Contributing)
+
+BitBallotはオープンソースプロジェクトとして、有志による貢献を歓迎しています。詳細は [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
+
+## 📄 ライセンス (License)
+
+本プロジェクトは **MIT License** の下で公開されています。詳細は [LICENSE](./LICENSE) ファイルを参照してください。
 
 ---
 *This implementation is a Rust/WebAssembly prototype demonstrating the core concepts of BitBallot.*
