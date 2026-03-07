@@ -1,5 +1,9 @@
 # 🗳️ BitBallot: Atomic Display Integrity for Public Elections
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![Rust](https://img.shields.io/badge/Rust-1.70+-orange.svg)](https://www.rust-lang.org/)
+
 vProgsとSTARKを活用し、国家規模の選挙に「表示の真正性」と「スケーラビリティ」をもたらす次世代投票プロトコル
 
 ---
@@ -8,6 +12,21 @@ vProgsとSTARKを活用し、国家規模の選挙に「表示の真正性」と
 
 BitBallotは、**Kaspa**などのBlockDAGアーキテクチャをL1（データ可用性・順序付け層）として活用する投票システムです。 
 既存の電子投票が抱える「端末改ざんによる意図のすり替え」や「集計中の中間情報漏洩」を暗号技術で解決しつつ、監視された投票所という現実的な制度的運用を前提としています。
+
+## 🚀 クイックスタート (Quick Start)
+
+プロジェクトの全体像をローカルで確認するための手順です。
+
+```bash
+# クライアント(WASM)のビルド準備
+cd client-wasm
+cargo build --target wasm32-unknown-unknown
+
+# Webアプリの起動
+cd ../web-app
+npm install
+npm run dev
+```
 
 ## ✨ 主要機能 (Core Features)
 
