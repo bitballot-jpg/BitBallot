@@ -1,5 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+/// 認証情報の証明書を定義。マイナンバーカード（JPKI）や一般的な分散型ID（DID）など
+/// 拡張可能な認証ソースを持つ。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "provider")]
+pub enum AuthProof {
+    JPKI { cert_hash: String, signature: String },
+    GenericDID { did: String, signature: String },
+}
+
 /// 投票者の画面表示状態を示す型。
 /// 実際のアプリケーションでは、画面のレイアウト情報や表示内容そのもののハッシュを含みます。
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -40,6 +49,7 @@ pub struct VotePayload {
     pub ciphertexts: VoteBatch, // モックのため平文のVoteBatchを保持
     pub adi_commitment: AdiCommitment,
     pub proof: String, // STARKなどのZKProof
+    pub auth_proof: AuthProof, // IDプロバイダ（JPKI/DID等）からの認証情報
 }
 
 /// ブロックチェーン（BlockDAG）上で抽出された、トランザクションのラッパー構造。

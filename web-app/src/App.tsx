@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import initSync, { generate_adi_commitment, generate_vote_batch, build_transaction_payload } from 'client-wasm';
+import type { IdentityProvider, AuthResult } from './auth/types';
+import { JPKIProvider } from './auth/JPKIProvider';
+import { GenericDIDProvider } from './auth/GenericDIDProvider';
 import './index.css';
 
 interface Candidate {
@@ -26,9 +29,17 @@ function App() {
   const [isWasmLoaded, setIsWasmLoaded] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [targetedDummyId] = useState<string | null>('c2'); // Mock: Coerced to vote for Bob Johnson
-  const [step, setStep] = useState<number>(1);
+
+  // Auth state
+  const [authResult, setAuthResult] = useState<AuthResult | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [selectedIdp, setSelectedIdp] = useState<string | null>(null);
+
+  const [step, setStep] = useState<number>(0); // 0: Auth, 1: Vote, 2: Process, 3: Success
   const [processingStep, setProcessingStep] = useState<number>(0);
   const [txId, setTxId] = useState<string>('');
+
+  const providers: IdentityProvider[] = [JPKIProvider, GenericDIDProvider];
 
   // Wasmの初期化
   useEffect(() => {
@@ -74,7 +85,8 @@ function App() {
     await new Promise(r => setTimeout(r, 800));
 
     // Build Payload
-    const payloadJs = build_transaction_payload(batchJs, adi, "valid_stark_proof_mock");
+    const authProofJs = authResult ? JSON.stringify(authResult.proof) : "{}";
+    const payloadJs = build_transaction_payload(batchJs, adi, "valid_stark_proof_mock", authProofJs);
     console.log("Tx Payload (To Node Core):", JSON.parse(payloadJs));
 
     // Generate Hash
@@ -94,7 +106,29 @@ function App() {
   const handleRestart = () => {
     setSelectedId(null);
     setProcessingStep(0);
-    setStep(1);
+    setStep(1); // Go back to vote screen, auth is kept
+  };
+
+  const handleLogout = () => {
+    setAuthResult(null);
+    setSelectedId(null);
+    setProcessingStep(0);
+    setStep(0);
+  };
+
+  const handleAuth = async (provider: IdentityProvider) => {
+    setIsAuthenticating(true);
+    setSelectedIdp(provider.id);
+    try {
+      const result = await provider.authenticate();
+      setAuthResult(result);
+      setStep(1);
+    } catch (error) {
+      console.error("Auth failed", error);
+    } finally {
+      setIsAuthenticating(false);
+      setSelectedIdp(null);
+    }
   };
 
   return (
@@ -108,11 +142,50 @@ function App() {
             <span className="icon">🗳️</span>
             <h1>BitBallot</h1>
           </div>
-          <div className="status-badge secure">
-            <span className="dot"></span>
-            {isWasmLoaded ? "ADI Engine Ready" : "Loading Engine..."}
+          <div className="status-container">
+            {authResult && (
+              <div className="status-badge user-id" onClick={handleLogout} title="Click to logout">
+                <span className="icon">👤</span>
+                {authResult.voter_id.substring(0, 15)}...
+              </div>
+            )}
+            <div className="status-badge secure">
+              <span className="dot"></span>
+              {isWasmLoaded ? "Engine Ready" : "Loading..."}
+            </div>
           </div>
         </header>
+
+        {step === 0 && (
+          <main className="step active">
+            <div className="step-header">
+              <h2>Select Identity Provider</h2>
+              <p>Please authenticate to verify your voter eligibility anonymously. Your identity is separated from your vote.</p>
+            </div>
+
+            <div className="idp-grid">
+              {providers.map((p) => (
+                <div
+                  key={p.id}
+                  className={`idp-card ${isAuthenticating && selectedIdp === p.id ? 'loading' : ''} ${isAuthenticating && selectedIdp !== p.id ? 'disabled' : ''}`}
+                  onClick={() => !isAuthenticating && handleAuth(p)}
+                >
+                  <div className="idp-icon">{p.icon}</div>
+                  <div className="idp-content">
+                    <h3>{p.name}</h3>
+                    <p>{p.description}</p>
+                  </div>
+                  {isAuthenticating && selectedIdp === p.id && <div className="spinner small"></div>}
+                </div>
+              ))}
+            </div>
+
+            <div className="security-notice">
+              <span className="icon">🛡️</span>
+              <p>This system uses ZK-STARKs. The authentication gateway issues an anonymous proof that you are eligible, preventing double-voting without tracking who you voted for.</p>
+            </div>
+          </main>
+        )}
 
         {step === 1 && (
           <main className="step active">

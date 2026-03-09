@@ -1,4 +1,4 @@
-use shared::{Ballot, DisplayState, VoteBatch, VotePayload};
+use shared::{Ballot, DisplayState, VoteBatch, VotePayload, AuthProof};
 use sha2::{Sha256, Digest};
 use wasm_bindgen::prelude::*;
 use rand::seq::SliceRandom;
@@ -78,14 +78,18 @@ pub fn generate_vote_batch(true_candidate: String, targeted_dummy: Option<String
 
 /// 暗号化データ、ADI、およびZK Proofモックをバンドルし、トランザクションペイロードを構築します
 #[wasm_bindgen]
-pub fn build_transaction_payload(encrypted_batch_js: String, adi_commitment: String, proof_mock: String) -> Result<String, wasm_bindgen::JsValue> {
+pub fn build_transaction_payload(encrypted_batch_js: String, adi_commitment: String, proof_mock: String, auth_proof_js: String) -> Result<String, wasm_bindgen::JsValue> {
     let batch: VoteBatch = serde_json::from_str(&encrypted_batch_js)
-        .map_err(|e| wasm_bindgen::JsValue::from_str(&e.to_string()))?;
+        .map_err(|e| wasm_bindgen::JsValue::from_str(&format!("Failed to parse batch: {}", e)))?;
+        
+    let auth_proof: AuthProof = serde_json::from_str(&auth_proof_js)
+        .map_err(|e| wasm_bindgen::JsValue::from_str(&format!("Failed to parse auth_proof: {}", e)))?;
     
     let payload = VotePayload {
         ciphertexts: batch,
         adi_commitment,
         proof: proof_mock, // e.g. "valid_stark_proof"
+        auth_proof,
     };
 
     serde_json::to_string(&payload).map_err(|e| wasm_bindgen::JsValue::from_str(&e.to_string()))

@@ -424,3 +424,116 @@ header {
 .disclaimer strong {
     color: var(--text-primary);
 }
+
+/* Authentication Gateway (Step 0) */
+.idp-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.idp-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.idp-card:hover:not(.disabled) {
+    background: var(--card-hover-bg);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.idp-card.loading {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--accent);
+}
+
+.idp-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(100%);
+}
+
+.idp-icon {
+    font-size: 32px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+}
+
+.idp-content {
+    flex: 1;
+    text-align: left;
+}
+
+.idp-content h3 {
+    font-size: 18px;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+
+.idp-content p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin: 0;
+}
+
+.spinner.small {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+    margin: 0;
+}
+
+.security-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(16, 185, 129, 0.05);
+    border-left: 4px solid var(--success);
+    border-radius: 0 12px 12px 0;
+    text-align: left;
+    margin-top: 24px;
+}
+
+.security-notice p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.status-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.status-badge.user-id {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--text-primary);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.status-badge.user-id:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+}
