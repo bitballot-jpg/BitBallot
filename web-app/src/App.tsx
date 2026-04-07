@@ -10,19 +10,21 @@ interface Candidate {
   name: string;
   party: string;
   emoji: string;
+  primary_node_url: string;
+  fallback_node_url: string;
 }
 
 const CANDIDATES: Candidate[] = [
-  { id: 'c1', name: 'Alice Smith', party: 'Progressive Alliance', emoji: '👩‍💼' },
-  { id: 'c2', name: 'Bob Johnson', party: 'Conservative Party', emoji: '👨‍💼' },
-  { id: 'c3', name: 'Charlie Davis', party: 'Independent', emoji: '🧑‍🚀' },
-  { id: 'c4', name: 'Diana Prince', party: 'Justice League', emoji: '👸' },
-  { id: 'c5', name: 'Ethan Hunt', party: 'Mission Force', emoji: '🕵️' },
-  { id: 'c6', name: 'Fiona Gallagher', party: 'South Side', emoji: '👩‍🎤' },
-  { id: 'c7', name: 'George Costanza', party: 'Vandelay Ind.', emoji: '👨‍💼' },
-  { id: 'c8', name: 'Hannah Abbott', party: 'Hufflepuff', emoji: '👩‍🎓' },
-  { id: 'c9', name: 'Ian Malcolm', party: 'Chaos Theory', emoji: '🦖' },
-  { id: 'c10', name: 'Julia Roberts', party: 'Pretty Woman', emoji: '🎭' }
+  { id: 'c1', name: 'Alice Smith', party: 'Progressive Alliance', emoji: '👩‍💼', primary_node_url: 'https://node.prog-alliance.example/tx', fallback_node_url: 'https://neutral-node.election.org/tx' },
+  { id: 'c2', name: 'Bob Johnson', party: 'Conservative Party', emoji: '👨‍💼', primary_node_url: 'https://node.conservative.example/tx', fallback_node_url: 'https://neutral-node.election.org/tx' },
+  { id: 'c3', name: 'Charlie Davis', party: 'Independent', emoji: '🧑‍🚀', primary_node_url: 'https://neutral-node.election.org/tx', fallback_node_url: 'https://backup.election.org/tx' },
+  { id: 'c4', name: 'Diana Prince', party: 'Justice League', emoji: '👸', primary_node_url: 'https://node.justice.example/tx', fallback_node_url: 'https://neutral-node.election.org/tx' },
+  { id: 'c5', name: 'Ethan Hunt', party: 'Mission Force', emoji: '🕵️', primary_node_url: 'https://node.imf.example/tx', fallback_node_url: 'https://backup.election.org/tx' },
+  { id: 'c6', name: 'Fiona Gallagher', party: 'South Side', emoji: '👩‍🎤', primary_node_url: 'https://node.southside.example/tx', fallback_node_url: 'https://neutral-node.election.org/tx' },
+  { id: 'c7', name: 'George Costanza', party: 'Vandelay Ind.', emoji: '👨‍💼', primary_node_url: 'https://node.vandelay.example/tx', fallback_node_url: 'https://neutral-node.election.org/tx' },
+  { id: 'c8', name: 'Hannah Abbott', party: 'Hufflepuff', emoji: '👩‍🎓', primary_node_url: 'https://node.hufflepuff.example/tx', fallback_node_url: 'https://neutral-node.election.org/tx' },
+  { id: 'c9', name: 'Ian Malcolm', party: 'Chaos Theory', emoji: '🦖', primary_node_url: 'https://node.chaos.example/tx', fallback_node_url: 'https://neutral-node.election.org/tx' },
+  { id: 'c10', name: 'Julia Roberts', party: 'Pretty Woman', emoji: '🎭', primary_node_url: 'https://node.prettywoman.example/tx', fallback_node_url: 'https://backup.election.org/tx' }
 ];
 
 function App() {
@@ -38,6 +40,7 @@ function App() {
   const [step, setStep] = useState<number>(0); // 0: Auth, 1: Vote, 2: Process, 3: Success
   const [processingStep, setProcessingStep] = useState<number>(0);
   const [txId, setTxId] = useState<string>('');
+  const [routedNode, setRoutedNode] = useState<string>('');
 
   const providers: IdentityProvider[] = [JPKIProvider, GenericDIDProvider];
 
@@ -89,13 +92,43 @@ function App() {
     const payloadJs = build_transaction_payload(batchJs, adi, "valid_stark_proof_mock", authProofJs);
     console.log("Tx Payload (To Node Core):", JSON.parse(payloadJs));
 
+    // Tx Broadcasting (Parallel to all nodes for maximum privacy and resilience)
+    console.log(`[Network] Broadcasting Vote Batch (Real + Dummies) to all nodes...`);
+    
+    // Extract unique node URLs for all candidates
+    const allNodes = Array.from(new Set([
+      ...CANDIDATES.map(c => c.primary_node_url),
+      "https://neutral-node.election.org/tx" // Always include at least one neutral node
+    ]));
+
+    // Simulate parallel broadcast
+    const broadcastPromises = allNodes.map(async (nodeUrl) => {
+        // Simulate network latency (200ms - 700ms)
+        await new Promise(r => setTimeout(r, 200 + Math.random() * 500));
+        const isNodeDown = Math.random() > 0.8; // 20% chance node is down
+        if (isNodeDown) {
+            console.warn(`[Network] ❌ ${nodeUrl} : Connection failed or Tx dropped.`);
+            return { node: nodeUrl, success: false };
+        } else {
+            console.log(`[Network] ✅ ${nodeUrl} : Tx Accepted.`);
+            return { node: nodeUrl, success: true };
+        }
+    });
+
+    const results = await Promise.all(broadcastPromises);
+    const successfulNodes = results.filter(r => r.success).length;
+    
+    console.log(`[Network] Tx successfully reached ${successfulNodes}/${allNodes.length} nodes. Any single node is enough for L1 propagation.`);
+
+    setRoutedNode(`Reached ${successfulNodes}/${allNodes.length} Nodes`);
+
     // Generate Hash
     const mockHash = Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
     setTxId(`tx_${mockHash.substring(0, 16)}...`);
 
     // Simulate Backend processing logs
     setTimeout(() => {
-      console.log(`[NodeCore Simulation] Registered Tx: tx_${mockHash.substring(0, 16)}...`);
+      console.log(`[NodeCore Simulation] Tx propagated to L1 Network: tx_${mockHash.substring(0, 16)}...`);
       console.log(`[Tally Simulation] Last-vote-valid triggered.`);
       console.log(`[Tally Simulation] Valid Vote for User: ${selectedName} counted. Earlier votes are pruned.`);
     }, 1000);
@@ -251,6 +284,10 @@ function App() {
               <p>Your vote has been securely encrypted and transmitted to the BlockDAG.</p>
 
               <div className="receipt-card">
+                <div className="receipt-row">
+                  <span className="label">Routed Node</span>
+                  <span className="value tx-hash">{routedNode}</span>
+                </div>
                 <div className="receipt-row">
                   <span className="label">Transaction ID</span>
                   <span className="value tx-hash">{txId}</span>
